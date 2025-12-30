@@ -1,0 +1,14 @@
+[Unit]
+Description=Organ Master Controller
+After=network.target sound.target
+
+[Service]
+Type=simple
+User=pi
+WorkingDirectory=/home/pi/organcontroller
+ExecStart=/home/pi/organcontroller/scripts/start_master.sh
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

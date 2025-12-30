@@ -1,0 +1,10 @@
+# MIDI port configuration
+# Defines which ALSA/system MIDI ports to use for input and output
+
+# Example structure (to be filled in):
+# input_ports:
+#   - "USB MIDI Interface"
+# 
+# output_ports:
+#   - "Rank Output 1"
+#   - "Rank Output 2"

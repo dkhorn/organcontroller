@@ -1,0 +1,9 @@
+# Rank definitions
+# Maps physical or virtual ranks to MIDI destinations
+
+# Example structure (to be filled in):
+# ranks:
+#   - id: principal_8
+#     name: "Principal 8'"
+#     midi_port: "Rank Output 1"
+#     midi_channel: 1

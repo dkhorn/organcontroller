@@ -1,0 +1,11 @@
+# Organ configuration
+# Main specification file defining the organ's capabilities and layout
+
+# Example structure (to be filled in):
+# manuals:
+#   - name: Great
+#     midi_channel: 1
+#   - name: Swell
+#     midi_channel: 2
+#   - name: Pedal
+#     midi_channel: 3

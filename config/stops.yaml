@@ -1,0 +1,10 @@
+# Stop definitions
+# Defines which stops are available, their manual assignment, and rank mappings
+
+# Example structure (to be filled in):
+# stops:
+#   - id: principal_8_great
+#     name: "Principal 8'"
+#     manual: Great
+#     ranks:
+#       - principal_8
