@@ -1,10 +1,6 @@
 # MIDI port configuration
 # Defines which ALSA/system MIDI ports to use for input and output
 
-# Example structure (to be filled in):
-# input_ports:
-#   - "USB MIDI Interface"
-# 
-# output_ports:
-#   - "Rank Output 1"
-#   - "Rank Output 2"
+# CME U6MIDI Pro configuration
+input_port: "U6MIDI Pro:U6MIDI Pro MIDI 1 20:0"
+output_port: "U6MIDI Pro:U6MIDI Pro MIDI 2 20:1"
