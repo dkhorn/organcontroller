@@ -16,5 +16,5 @@ fluidsynth \
   -r 48000 \
   -o audio.period-size=128 \
   -o audio.periods=3 \
-  -o midi.portname="FS_Virtual" \
+  -o midi.portname="FS_Virtual2" \
   /home/daniel/organcontroller/soundfonts/jeuxdorgues21.SF2

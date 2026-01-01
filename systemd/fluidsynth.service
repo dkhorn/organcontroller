@@ -4,10 +4,13 @@ After=sound.target
 
 [Service]
 Type=simple
-User=pi
-ExecStart=/home/pi/organcontroller/scripts/start_fluidsynth.sh
+User=daniel
+WorkingDirectory=/home/daniel/organcontroller
+ExecStart=/home/daniel/organcontroller/scripts/start_fluidsynth.sh
 Restart=on-failure
 RestartSec=5
+# Set nice priority for better audio performance
+Nice=-10
 
 [Install]
 WantedBy=multi-user.target

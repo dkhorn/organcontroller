@@ -1,0 +1,323 @@
+# =============================================================================
+# STOPS CONFIGURATION
+# =============================================================================
+# Each stop references one or more ranks with a transpose value.
+# Transpose indicates the semitone shift applied to the played note to achieve
+# the desired pitch from the rank.
+#
+# Example: A 16' stop using an 8' rank would transpose by -12 (play octave lower)
+#          A 4' stop using an 8' rank would transpose by +12 (play octave higher)
+#
+# For mutations and mixtures, the transpose represents the interval relationship.
+
+# =============================================================================
+# GREAT DIVISION
+# =============================================================================
+
+great:
+  # PRINCIPALS (M1 - Open Diapason 8')
+  GREAT_PRINCIPAL_8:
+    name: "Principal 8'"
+    ranks:
+      - rank: M1
+        transpose: 0  # 8' stop
+  
+  GREAT_OCTAVE_4:
+    name: "Octave 4'"
+    ranks:
+      - rank: M1
+        transpose: 12  # 4' stop
+  
+  GREAT_FIFTEENTH_2:
+    name: "Fifteenth 2'"
+    ranks:
+      - rank: M1
+        transpose: 24  # 2' stop
+  
+  GREAT_PRINCIPAL_16:
+    name: "Principal 16'"
+    ranks:
+      - rank: M1
+        transpose: -12  # 16' stop
+  
+  # FLUTES (W1 - Open Flute 8')
+  GREAT_FLUTE_8:
+    name: "Flute 8'"
+    ranks:
+      - rank: W1
+        transpose: 0  # 8' stop
+  
+  GREAT_FLUTE_4:
+    name: "Flute 4'"
+    ranks:
+      - rank: W1
+        transpose: 12  # 4' stop
+  
+  # BOURDONS (W2 - Bourdon 16')
+  GREAT_BOURDON_16:
+    name: "Bourdon 16'"
+    ranks:
+      - rank: W2
+        transpose: -12  # 16' stop
+  
+  GREAT_BOURDON_8:
+    name: "Bourdon 8'"
+    ranks:
+      - rank: W2
+        transpose: 0  # 8' stop
+  
+  # DIGITAL STOPS
+  GREAT_MIXTURE:
+    name: "Mixture IV-V"
+    ranks:
+      - rank: D_GREAT_MIXTURE
+        transpose: 0
+  
+  GREAT_TRUMPET_8:
+    name: "Trumpet 8'"
+    ranks:
+      - rank: D_GREAT_TRUMPET
+        transpose: 0
+  
+  GREAT_CLARION_4:
+    name: "Clarion 4'"
+    ranks:
+      - rank: D_GREAT_CLARION
+        transpose: 0
+
+# =============================================================================
+# SWELL DIVISION (Enclosed, Tremulant)
+# =============================================================================
+
+swell:
+  # STRINGS
+  SWELL_SALICIONAL_8:
+    name: "Salicional 8'"
+    ranks:
+      - rank: M4
+        transpose: 0  # 8' stop
+  
+  SWELL_VOIX_CELESTE_8:
+    name: "Voix Celeste 8'"
+    ranks:
+      - rank: M3
+        transpose: 0  # 8' stop (49 notes, sharp-tuned)
+  
+  SWELL_SALICIONAL_4:
+    name: "Salicional 4'"
+    ranks:
+      - rank: M4
+        transpose: 12  # 4' stop
+  
+  SWELL_DULCIANA_8:
+    name: "Dulciana 8'"
+    ranks:
+      - rank: M2
+        transpose: 0  # 8' stop
+  
+  # HIGH STRING / PICCOLO (M5 - 2' rank)
+  SWELL_PICCOLO_2:
+    name: "High String / Piccolo 2'"
+    ranks:
+      - rank: M5
+        transpose: 24  # 2' stop
+  
+  # FLUTES (W2 - Bourdon 16', fully enclosed)
+  SWELL_GEDACKT_8:
+    name: "Gedackt 8'"
+    ranks:
+      - rank: W2
+        transpose: 0  # 8' stop
+  
+  SWELL_FLUTE_4:
+    name: "Flute 4'"
+    ranks:
+      - rank: W2
+        transpose: 12  # 4' stop
+  
+  # DIGITAL STOPS
+  SWELL_FIFTEENTH_2:
+    name: "Fifteenth 2'"
+    ranks:
+      - rank: D_SWELL_FIFTEENTH
+        transpose: 0
+  
+  SWELL_MIXTURE:
+    name: "Mixture III"
+    ranks:
+      - rank: D_SWELL_MIXTURE
+        transpose: 0
+  
+  SWELL_OBOE_8:
+    name: "Oboe 8'"
+    ranks:
+      - rank: D_SWELL_OBOE
+        transpose: 0
+  
+  SWELL_TRUMPET_8:
+    name: "Trumpet 8'"
+    ranks:
+      - rank: D_SWELL_TRUMPET
+        transpose: 0
+
+# =============================================================================
+# CHOIR DIVISION (Borrowed & Digital only - "Playground Manual")
+# =============================================================================
+
+choir:
+  # BORROWED FROM W2 (fully enclosed)
+  CHOIR_LIEBLICH_GEDACKT_8:
+    name: "Lieblich Gedackt 8'"
+    ranks:
+      - rank: W2
+        transpose: 0  # 8' stop
+    notes: "Borrowed from W2 (enclosed, but borrowed to unenclosed Choir)"
+  
+  CHOIR_FLUTE_4:
+    name: "Flute 4'"
+    ranks:
+      - rank: W2
+        transpose: 12  # 4' stop
+    notes: "Borrowed from W2 (enclosed, but borrowed to unenclosed Choir)"
+  
+  # BORROWED FROM M5 (non-tremmed)
+  CHOIR_PICCOLO_2:
+    name: "Piccolo 2'"
+    ranks:
+      - rank: M5
+        transpose: 24  # 2' stop
+    notes: "Borrowed from M5, but non-tremmed version"
+  
+  # DIGITAL MUTATIONS
+  CHOIR_NAZARD_2_2_3:
+    name: "Nazard 2-2/3'"
+    ranks:
+      - rank: D_CHOIR_NAZARD
+        transpose: 0
+  
+  CHOIR_TIERCE_1_3_5:
+    name: "Tierce 1-3/5'"
+    ranks:
+      - rank: D_CHOIR_TIERCE
+        transpose: 0
+  
+  CHOIR_LARIGOT_1_1_3:
+    name: "Larigot 1-1/3'"
+    ranks:
+      - rank: D_CHOIR_LARIGOT
+        transpose: 0
+  
+  # DIGITAL MIXTURE & REEDS
+  CHOIR_CYMBALE:
+    name: "Cymbale III"
+    ranks:
+      - rank: D_CHOIR_CYMBALE
+        transpose: 0
+  
+  CHOIR_CLARINET_8:
+    name: "Clarinet 8'"
+    ranks:
+      - rank: D_CHOIR_CLARINET
+        transpose: 0
+  
+  CHOIR_VOX_HUMANA_8:
+    name: "Vox Humana 8'"
+    ranks:
+      - rank: D_CHOIR_VOX_HUMANA
+        transpose: 0
+
+# =============================================================================
+# PEDAL DIVISION
+# =============================================================================
+
+pedal:
+  # BOURDON FAMILY (W2 - 16' rank)
+  PEDAL_BOURDON_16:
+    name: "Bourdon 16'"
+    ranks:
+      - rank: W2
+        transpose: -12  # 16' stop
+  
+  PEDAL_BOURDON_8:
+    name: "Bourdon 8'"
+    ranks:
+      - rank: W2
+        transpose: 0  # 8' stop
+  
+  PEDAL_FLUTE_4:
+    name: "Flute 4'"
+    ranks:
+      - rank: W2
+        transpose: 12  # 4' stop
+  
+  # TIBIA BASS (W3 - 16' rank, 37 notes)
+  PEDAL_TIBIA_BASS_16:
+    name: "Tibia Bass 16'"
+    ranks:
+      - rank: W3
+        transpose: -12  # 16' stop
+  
+  # SUBBASS (R1 - 16' free reed, 12 notes)
+  PEDAL_SUBBASS_16:
+    name: "Subbass 16'"
+    ranks:
+      - rank: R1
+        transpose: -12  # 16' stop
+  
+  # BORROWED OPEN FLUTE (W1 - 8' rank)
+  PEDAL_OPEN_FLUTE_8:
+    name: "Open Flute 8'"
+    ranks:
+      - rank: W1
+        transpose: 0  # 8' stop
+  
+  # BORROWED PRINCIPAL (M1 - 8' rank)
+  PEDAL_PRINCIPAL_8:
+    name: "Principal 8'"
+    ranks:
+      - rank: M1
+        transpose: 0  # 8' stop
+  
+  # DIGITAL STOPS
+  PEDAL_MIXTURE:
+    name: "Mixture IV"
+    ranks:
+      - rank: D_PEDAL_MIXTURE
+        transpose: 0
+  
+  PEDAL_TROMBONE_16:
+    name: "Trombone 16'"
+    ranks:
+      - rank: D_PEDAL_TROMBONE
+        transpose: -12  # 16' stop
+  
+  PEDAL_TRUMPET_8:
+    name: "Trumpet 8'"
+    ranks:
+      - rank: D_PEDAL_TRUMPET
+        transpose: 0
+
+# =============================================================================
+# NOTES ON IMPLEMENTATION
+# =============================================================================
+# 
+# Physical rank placement:
+# - W2 (Bourdon 16'): Fully enclosed in Swell box
+# - W2 is borrowed to Great, Pedal, and Choir divisions
+# - Even though enclosed, W2 can be borrowed out (exception to tremulant rule)
+#
+# Tremulant behavior:
+# - Swell tremulant affects: M2, M3, M4, M5, W2 (physical) + all D_SWELL_* (digital)
+# - Choir tremulant affects: D_CHOIR_* only (digital stops only)
+# - M5 borrowed to Choir should NOT be tremmed
+# - W2 borrowed to Great/Pedal/Choir may or may not be tremmed (TBD in logic)
+#
+# Expression:
+# - Swell expression affects: M2, M3, M4, M5, W2 + all D_SWELL_*
+#
+# Extension/Unification notes:
+# - M1: Extended to provide 16' and 2' (first_note allows this)
+# - W1: Extended downward to provide full compass from tenor C
+# - W2: Extended in both directions, split between divisions
+# - M4: Extended to provide 4' (Swell Salicional 4')
+# - M5: Used at native 2' pitch, borrowed to Choir non-tremmed

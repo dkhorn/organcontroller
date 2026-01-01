@@ -1,0 +1,196 @@
+# =============================================================================
+# INPUT MAPPING CONFIGURATION
+# =============================================================================
+# Maps MIDI input channels and note ranges to organ divisions and functions.
+# 
+# The U6MIDI Pro has 3 MIDI input ports. We're using port 1 (20:0) for all
+# keyboard inputs. Different keyboards are on different MIDI channels.
+
+# =============================================================================
+# MANUAL KEYBOARDS
+# =============================================================================
+# Each manual has:
+# - A key range for normal notes (typically 61 keys, C2-C7)
+# - Piston ranges above/below the key range for combination pistons
+
+manuals:
+  great:
+    channel: 0
+    keys:
+      first_note: 36  # C2
+      last_note: 96   # C7
+    pistons_below:
+      first_note: 24  # C1
+      last_note: 35   # B1
+    pistons_above:
+      first_note: 97  # C#7
+      last_note: 108  # C8
+    notes: "Great manual - unenclosed"
+  
+  swell:
+    channel: 1
+    keys:
+      first_note: 36  # C2
+      last_note: 96   # C7
+    pistons_below:
+      first_note: 24  # C1
+      last_note: 35   # B1
+    pistons_above:
+      first_note: 97  # C#7
+      last_note: 108  # C8
+    notes: "Swell manual - enclosed with expression"
+  
+  choir:
+    channel: 2
+    keys:
+      first_note: 36  # C2
+      last_note: 96   # C7
+    pistons_below:
+      first_note: 24  # C1
+      last_note: 35   # B1
+    pistons_above:
+      first_note: 97  # C#7
+      last_note: 108  # C8
+    notes: "Choir manual - borrowed & digital"
+
+# =============================================================================
+# PEDAL BOARD
+# =============================================================================
+# AGO standard: 32 notes (C1-G3)
+# Pistons below and above the pedal range
+
+pedal:
+  channel: 3
+  keys:
+    first_note: 24  # C1
+    last_note: 55   # G3
+  pistons_below:
+    first_note: 12  # C0
+    last_note: 23   # B0
+  pistons_above:
+    first_note: 56  # G#3
+    last_note: 67   # G4
+  notes: "AGO standard 32-note pedal board"
+
+# =============================================================================
+# STOP BOARD
+# =============================================================================
+# Each MIDI note corresponds to a specific stop.
+# Note ON = draw stop, Note OFF = cancel stop
+# Using channel 4 for stop controls
+
+stops:
+  channel: 4
+  mappings:
+    # GREAT STOPS (notes 36-46)
+    36: great:GREAT_PRINCIPAL_8
+    37: great:GREAT_OCTAVE_4
+    38: great:GREAT_FIFTEENTH_2
+    39: great:GREAT_PRINCIPAL_16
+    40: great:GREAT_FLUTE_8
+    41: great:GREAT_FLUTE_4
+    42: great:GREAT_BOURDON_16
+    43: great:GREAT_BOURDON_8
+    44: great:GREAT_MIXTURE
+    45: great:GREAT_TRUMPET_8
+    46: great:GREAT_CLARION_4
+    
+    # SWELL STOPS (notes 48-59)
+    48: swell:SWELL_SALICIONAL_8
+    49: swell:SWELL_VOIX_CELESTE_8
+    50: swell:SWELL_SALICIONAL_4
+    51: swell:SWELL_DULCIANA_8
+    52: swell:SWELL_PICCOLO_2
+    53: swell:SWELL_GEDACKT_8
+    54: swell:SWELL_FLUTE_4
+    55: swell:SWELL_FIFTEENTH_2
+    56: swell:SWELL_MIXTURE
+    57: swell:SWELL_OBOE_8
+    58: swell:SWELL_TRUMPET_8
+    
+    # CHOIR STOPS (notes 60-69)
+    60: choir:CHOIR_LIEBLICH_GEDACKT_8
+    61: choir:CHOIR_FLUTE_4
+    62: choir:CHOIR_PICCOLO_2
+    63: choir:CHOIR_NAZARD_2_2_3
+    64: choir:CHOIR_TIERCE_1_3_5
+    65: choir:CHOIR_LARIGOT_1_1_3
+    66: choir:CHOIR_CYMBALE
+    67: choir:CHOIR_CLARINET_8
+    68: choir:CHOIR_VOX_HUMANA_8
+    
+    # PEDAL STOPS (notes 72-82)
+    72: pedal:PEDAL_BOURDON_16
+    73: pedal:PEDAL_BOURDON_8
+    74: pedal:PEDAL_FLUTE_4
+    75: pedal:PEDAL_TIBIA_BASS_16
+    76: pedal:PEDAL_SUBBASS_16
+    77: pedal:PEDAL_OPEN_FLUTE_8
+    78: pedal:PEDAL_PRINCIPAL_8
+    79: pedal:PEDAL_MIXTURE
+    80: pedal:PEDAL_TROMBONE_16
+    81: pedal:PEDAL_TRUMPET_8
+
+# =============================================================================
+# EXPRESSION PEDALS
+# =============================================================================
+# Continuous controllers for expression/volume control
+
+expression:
+  swell_expression:
+    channel: 1
+    controller: 11  # CC11 - Expression
+    notes: "Swell box expression pedal"
+  
+  choir_expression:
+    channel: 2
+    controller: 11  # CC11 - Expression
+    notes: "Choir expression (if separate from Swell)"
+
+# =============================================================================
+# COUPLERS
+# =============================================================================
+# Couplers could be on a separate channel or part of the stop channel
+# Using channel 5 for coupler controls
+
+couplers:
+  channel: 5
+  mappings:
+    36: "SWELL_TO_GREAT"
+    37: "CHOIR_TO_GREAT"
+    38: "SWELL_TO_CHOIR"
+    39: "GREAT_TO_PEDAL"
+    40: "SWELL_TO_PEDAL"
+    41: "CHOIR_TO_PEDAL"
+    42: "GREAT_SUB"       # Great Sub-octave coupler
+    43: "GREAT_SUPER"     # Great Super-octave coupler
+    44: "SWELL_SUB"
+    45: "SWELL_SUPER"
+    46: "CHOIR_SUB"
+    47: "CHOIR_SUPER"
+
+# =============================================================================
+# TREMULANTS
+# =============================================================================
+# Using channel 6 for tremulant controls
+
+tremulants:
+  channel: 6
+  mappings:
+    36: "SWELL_TREMULANT"
+    37: "CHOIR_TREMULANT"
+
+# =============================================================================
+# NOTES ON CONFIGURATION
+# =============================================================================
+# 
+# This configuration assumes:
+# - All keyboards are on the same physical MIDI port (U6MIDI Pro port 1)
+# - Different functions use different MIDI channels
+# - Manual channels: 0-2 (Great, Swell, Choir)
+# - Pedal channel: 3
+# - Stop board channel: 4
+# - Coupler controls channel: 5
+# - Tremulant controls channel: 6
+# 
+# Adjust these channel assignments based on your actual MIDI controller setup.

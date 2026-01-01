@@ -1,14 +1,17 @@
 [Unit]
 Description=Organ Master Controller
-After=network.target sound.target
+After=network.target sound.target fluidsynth.service
+Wants=fluidsynth.service
 
 [Service]
 Type=simple
-User=pi
-WorkingDirectory=/home/pi/organcontroller
-ExecStart=/home/pi/organcontroller/scripts/start_master.sh
+User=daniel
+WorkingDirectory=/home/daniel/organcontroller
+ExecStart=/home/daniel/organcontroller/scripts/start_master.sh
 Restart=on-failure
 RestartSec=5
+# Give FluidSynth time to start and create its MIDI port
+ExecStartPre=/bin/sleep 2
 
 [Install]
 WantedBy=multi-user.target

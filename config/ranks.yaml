@@ -1,9 +1,305 @@
 # Rank definitions
 # Maps physical or virtual ranks to MIDI destinations
+# 
+# Address format: device:port:channel
+# - Physical ranks use hardware MIDI (U6MIDI Pro port 3)
+# - Virtual/Digital ranks use FluidSynth with different programs per channel
+#
+# FluidSynth strategy:
+# - Each channel (0-15) has ONE rank selected via program change
+# - Program numbers map to different organ voices in the soundfont
+# - Multiple stops can reference the same channel/program
 
-# Example structure (to be filled in):
-# ranks:
-#   - id: principal_8
-#     name: "Principal 8'"
-#     midi_port: "Rank Output 1"
-#     midi_channel: 1
+# =============================================================================
+# PHYSICAL RANKS - Hardware MIDI Output (Port 3)
+# =============================================================================
+
+physical_ranks:
+  # PRINCIPALS (Metal)
+  M1:
+    name: "Open Diapason"
+    description: "8' (tenor C) 61 notes"
+    midi_address: "U6MIDI Pro:U6MIDI Pro MIDI 3 20:2:0"
+    first_note: 48  # C3 at 8' pitch (tenor C)
+    last_note: 108  # C8 at 8' pitch
+    c4_pitch_note: 60  # MIDI note 60 sounds as C4
+    c4_key_note: 60    # Middle C key is MIDI note 60
+    notes: "Great & Pedal principal foundation"
+  
+  M2:
+    name: "Dulciana"
+    description: "8' (tenor C) 61 notes"
+    midi_address: "U6MIDI Pro:U6MIDI Pro MIDI 3 20:2:1"
+    first_note: 48  # C3 at 8' pitch (tenor C)
+    last_note: 108  # C8 at 8' pitch
+    c4_pitch_note: 60  # MIDI note 60 sounds as C4
+    c4_key_note: 60    # Middle C key is MIDI note 60
+    notes: "Soft string in Swell"
+  
+  M3:
+    name: "Voix Celeste"
+    description: "8' (tenor C) 49 notes - sharp-tuned celeste"
+    midi_address: "U6MIDI Pro:U6MIDI Pro MIDI 3 20:2:2"
+    first_note: 48  # C3 at 8' pitch (tenor C)
+    last_note: 96   # C7 at 8' pitch
+    c4_pitch_note: 60  # MIDI note 60 sounds as C4
+    c4_key_note: 60    # Middle C key is MIDI note 60
+    notes: "Swell, enclosed & tremmed"
+  
+  M4:
+    name: "Salicional"
+    description: "8' (tenor C) 61 notes - string tone"
+    midi_address: "U6MIDI Pro:U6MIDI Pro MIDI 3 20:2:3"
+    first_note: 48  # C3 at 8' pitch (tenor C)
+    last_note: 108  # C8 at 8' pitch
+    c4_pitch_note: 60  # MIDI note 60 sounds as C4
+    c4_key_note: 60    # Middle C key is MIDI note 60
+    notes: "Swell, enclosed & tremmed"
+  
+  M5:
+    name: "High String / Piccolo"
+    description: "2' (tenor C) 49 notes - high string/flute"
+    midi_address: "U6MIDI Pro:U6MIDI Pro MIDI 3 20:2:4"
+    first_note: 48  # C3 keyboard note (sounds at C5 due to 2' pitch)
+    last_note: 96   # C7 keyboard note (sounds at C9 due to 2' pitch)
+    c4_pitch_note: 36  # MIDI note 36 (C2 key) sounds as C4
+    c4_key_note: 60    # Middle C key is MIDI note 60
+    notes: "Swell enclosed & tremmed (but borrowed to Choir non-tremmed)"
+  
+  # FLUTES (Wood)
+  W1:
+    name: "Open Flute"
+    description: "8' (tenor C) open flute 85 notes"
+    midi_address: "U6MIDI Pro:U6MIDI Pro MIDI 3 20:2:5"
+    first_note: 24  # C1 at 8' pitch (extended down 2 octaves)
+    last_note: 108  # C8 at 8' pitch
+    c4_pitch_note: 60  # MIDI note 60 sounds as C4
+    c4_key_note: 36    # Middle C key shifted to MIDI note 36 (extended rank)
+    notes: "Great unenclosed, extended down for full compass"
+  
+  W2:
+    name: "Bourdon"
+    description: "16' Stopped flute 97 notes"
+    midi_address: "U6MIDI Pro:U6MIDI Pro MIDI 3 20:2:6"
+    first_note: 24  # C1 at 16' pitch (sounds at C0)
+    last_note: 120  # C9 at 16' pitch (sounds at C8)
+    c4_pitch_note: 72  # MIDI note 72 (C5 key) sounds as C4
+    c4_key_note: 48    # Middle C key shifted to MIDI note 48 (extended rank)
+    notes: "Great & Pedal, can be borrowed to Choir"
+  
+  W3:
+    name: "Tibia Bass"
+    description: "16' Stopped flute pedal 37 notes"
+    midi_address: "U6MIDI Pro:U6MIDI Pro MIDI 3 20:2:8"
+    first_note: 24  # C1 at 16' pitch (pedal low C sounds at C0)
+    last_note: 60   # C4 at 16' pitch (sounds at C3)
+    c4_pitch_note: 72  # MIDI note 72 sounds as C4
+    c4_key_note: 60  # Middle C (pedal equivalent) is MIDI note 60
+    notes: "Pedal only, unenclosed"
+  
+  # REEDS (Free reed)
+  R1:
+    name: "Subbass (Free Reed)"
+    description: "16' free reed pedal 12 notes"
+    midi_address: "U6MIDI Pro:U6MIDI Pro MIDI 3 20:2:9"
+    first_note: 24  # C1 at 16' pitch (pedal low C sounds at C0)
+    last_note: 35   # B1 at 16' pitch (sounds at B0)
+    c4_pitch_note: 72  # MIDI note 72 sounds as C4
+    c4_key_note: 60  # Middle C (pedal equivalent) is MIDI note 60
+    notes: "Pedal only, no pipes (reed resonators)"
+
+# =============================================================================
+# VIRTUAL/DIGITAL RANKS - FluidSynth
+# =============================================================================
+# Each channel is assigned one program (organ voice)
+# Programs are mapped to soundfont presets
+
+virtual_ranks:
+  # GREAT DIVISION (Digital stops)
+  D_GREAT_MIXTURE:
+    name: "Great Mixture IV-V"
+    midi_address: "FS_Virtual:FS_Virtual 128:0:0"
+    program: 7  # Bank 0, Program 7: "I Fourniture 3 rgs"
+    first_note: 36  # C2 (full 61-note manual compass)
+    last_note: 96   # C7
+    c4_pitch_note: 60  # Augments 8' fundamental
+    c4_key_note: 60    # Middle C key is MIDI note 60
+    description: "Bright chorus mixture for Great"
+  
+  D_GREAT_TRUMPET:
+    name: "Great Trumpet 8'"
+    midi_address: "FS_Virtual:FS_Virtual 128:0:1"
+    program: 10  # Bank 0, Program 10: "I Trompette 8"
+    first_note: 36  # C2 at 8' pitch
+    last_note: 96   # C7 at 8' pitch
+    c4_pitch_note: 60  # MIDI note 60 sounds as C4
+    c4_key_note: 60    # Middle C key is MIDI note 60
+    description: "Great chorus reed"
+  
+  D_GREAT_CLARION:
+    name: "Great Clarion 4'"
+    midi_address: "FS_Virtual:FS_Virtual 128:0:2"
+    program: 4  # Bank 0, Program 4: "I Octav 4" (closest to clarion)
+    first_note: 36  # C2 keyboard note (sounds at C3 due to 4' pitch)
+    last_note: 96   # C7 keyboard note (sounds at C8 due to 4' pitch)
+    c4_pitch_note: 48  # MIDI note 48 (C3 key) sounds as C4
+    c4_key_note: 60    # Middle C key is MIDI note 60
+    description: "4' chorus reed"
+  
+  D_GREAT_MONTRE:
+    name: "Great Montre 8'"
+    midi_address: "FS_Virtual2:FS_Virtual2 129:0:0"
+    program: 1  # Bank 0, Program 1: "Montre 8"
+    first_note: 36  # C2
+    last_note: 96   # C7
+    c4_pitch_note: 60  # MIDI note 60 sounds as C4
+    c4_key_note: 60    # Middle C key is MIDI note 60
+    description: "Digital principal 8' on FluidSynth instance 2"
+  
+  # SWELL DIVISION (Digital stops)
+  D_SWELL_FIFTEENTH:
+    name: "Swell Fifteenth 2'"
+    midi_address: "FS_Virtual:FS_Virtual 128:0:3"
+    program: 14  # Bank 0, Program 14: "II Doublette 2"
+    first_note: 36  # C2 keyboard note (sounds at C4 due to 2' pitch)
+    last_note: 96   # C7 keyboard note (sounds at C9 due to 2' pitch)
+    c4_pitch_note: 36  # MIDI note 36 (C2 key) sounds as C4
+    c4_key_note: 60    # Middle C key is MIDI note 60
+    description: "Digital 2' principal for Swell"
+  
+  D_SWELL_MIXTURE:
+    name: "Swell Mixture III"
+    midi_address: "FS_Virtual:FS_Virtual 128:0:4"
+    program: 16  # Bank 0, Program 16: "II Cymbale 3 rgs"
+    first_note: 36  # C2
+    last_note: 96   # C7
+    c4_pitch_note: 60  # Augments 8' fundamental
+    c4_key_note: 60    # Middle C key is MIDI note 60
+    description: "Enclosed mixture for Swell"
+  
+  D_SWELL_TRUMPET:
+    name: "Swell Trumpet 8'"
+    midi_address: "FS_Virtual:FS_Virtual 128:0:5"
+    program: 10  # Bank 0, Program 10: "I Trompette 8"
+    first_note: 36  # C2 at 8' pitch
+    last_note: 96   # C7 at 8' pitch
+    c4_pitch_note: 60  # MIDI note 60 sounds as C4
+    c4_key_note: 60    # Middle C key is MIDI note 60
+    description: "Enclosed Swell reed"
+  
+  D_SWELL_OBOE:
+    name: "Swell Oboe 8'"
+    midi_address: "FS_Virtual:FS_Virtual 128:0:6"
+    program: 18  # Bank 0, Program 18: "II Hautbois 8"
+    first_note: 36  # C2 at 8' pitch
+    last_note: 96   # C7 at 8' pitch
+    c4_pitch_note: 60  # MIDI note 60 sounds as C4
+    c4_key_note: 60    # Middle C key is MIDI note 60
+    description: "Solo reed voice"
+  
+  # CHOIR DIVISION (Digital stops)
+  D_CHOIR_NAZARD:
+    name: "Choir Nazard 2-2/3'"
+    midi_address: "FS_Virtual:FS_Virtual 128:0:7"
+    program: 13  # Bank 0, Program 13: "II Nazard 2 2/3"
+    first_note: 36  # C2 keyboard note (sounds at G3 due to 2-2/3' pitch)
+    last_note: 96   # C7 keyboard note (sounds at G8 due to 2-2/3' pitch)
+    c4_pitch_note: 60  # Augments 8' fundamental
+    c4_key_note: 60    # Middle C key is MIDI note 60
+    description: "Mutation stop"
+  
+  D_CHOIR_TIERCE:
+    name: "Choir Tierce 1-3/5'"
+    midi_address: "FS_Virtual:FS_Virtual 128:0:8"
+    program: 15  # Bank 0, Program 15: "II Tierce 1 3/5"
+    first_note: 36  # C2 keyboard note (sounds at E5 due to 1-3/5' pitch)
+    last_note: 96   # C7 keyboard note (sounds at E10 due to 1-3/5' pitch)
+    c4_pitch_note: 60  # Augments 8' fundamental
+    c4_key_note: 60    # Middle C key is MIDI note 60
+    description: "Tierce mutation"
+  
+  D_CHOIR_LARIGOT:
+    name: "Choir Larigot 1-1/3'"
+    midi_address: "FS_Virtual:FS_Virtual 128:0:10"
+    program: 6  # Bank 0, Program 6: "I Doublette 2" (closest available)
+    first_note: 36  # C2 keyboard note (sounds at G4 due to 1-1/3' pitch)
+    last_note: 96   # C7 keyboard note (sounds at G9 due to 1-1/3' pitch)
+    c4_pitch_note: 48  # Augments 4' fundamental
+    c4_key_note: 60    # Middle C key is MIDI note 60
+    description: "High mutation"
+  
+  D_CHOIR_CYMBALE:
+    name: "Choir Cymbale III"
+    midi_address: "FS_Virtual:FS_Virtual 128:0:11"
+    program: 16  # Bank 0, Program 16: "II Cymbale 3 rgs"
+    first_note: 36  # C2
+    last_note: 96   # C7
+    c4_pitch_note: 60  # Augments 8' fundamental
+    c4_key_note: 60    # Middle C key is MIDI note 60
+    description: "Bright mutation mixture"
+  
+  D_CHOIR_CLARINET:
+    name: "Choir Clarinet 8'"
+    midi_address: "FS_Virtual:FS_Virtual 128:0:12"
+    program: 18  # Bank 0, Program 18: "II Hautbois 8" (reed voice)
+    first_note: 36  # C2 at 8' pitch
+    last_note: 96   # C7 at 8' pitch
+    c4_pitch_note: 60  # MIDI note 60 sounds as C4
+    c4_key_note: 60    # Middle C key is MIDI note 60
+    description: "Solo reed"
+  
+  D_CHOIR_VOX_HUMANA:
+    name: "Choir Vox Humana 8'"
+    midi_address: "FS_Virtual:FS_Virtual 128:0:13"
+    program: 3  # Bank 0, Program 3: "I Salicional 8" (string tone)
+    first_note: 36  # C2 at 8' pitch
+    last_note: 96   # C7 at 8' pitch
+    c4_pitch_note: 60  # MIDI note 60 sounds as C4
+    c4_key_note: 60    # Middle C key is MIDI note 60
+    description: "Tremmed solo voice"
+  
+  # PEDAL DIVISION (Digital stops)
+  D_PEDAL_MIXTURE:
+    name: "Pedal Mixture IV"
+    midi_address: "FS_Virtual:FS_Virtual 128:0:14"
+    program: 9  # Bank 0, Program 9: "I Plein jeu"
+    first_note: 24  # C1 (32-note AGO pedal)
+    last_note: 55   # G3
+    c4_pitch_note: 60  # Mixture (multiple pitches) - assume matches 8'
+    c4_key_note: 60    # Middle C (pedal equivalent) is MIDI note 60
+    description: "Pedal mixture"
+  
+  D_PEDAL_TROMBONE:
+    name: "Pedal Trombone 16'"
+    midi_address: "FS_Virtual:FS_Virtual 128:0:15"
+    program: 25  # Bank 0, Program 25: "PED Trompette 8" (pedal reed)
+    first_note: 24  # C1 at 16' pitch (sounds at C0)
+    last_note: 55   # G3 at 16' pitch (sounds at G2)
+    c4_pitch_note: 72  # MIDI note 72 sounds as C4
+    c4_key_note: 60  # Middle C (pedal equivalent) is MIDI note 60
+    description: "Heavy pedal reed"
+  
+  # NOTE: Channel 9 is skipped (MIDI drum channel - FluidSynth won't load melodic presets)
+  
+  D_PEDAL_TRUMPET:
+    name: "Pedal Trumpet 8'"
+    midi_address: "FS_Virtual:FS_Virtual 128:0:8"
+    program: 25  # Bank 0, Program 25: "PED Trompette 8"
+    first_note: 24  # C1 at 8' pitch
+    last_note: 55   # G3 at 8' pitch
+    c4_pitch_note: 60  # MIDI note 60 sounds as C4
+    c4_key_note: 60  # Middle C (pedal equivalent) is MIDI note 60
+    description: "Pedal chorus reed"
+  
+  # Note: D_PEDAL_RESULTANT (32') would be synthesized by combining
+  # 16' and 10-2/3' or generated as an acoustic resultant
+
+# =============================================================================
+# INITIALIZATION
+# =============================================================================
+# On startup, send program changes to FluidSynth to load each rank:
+# - Channel 0 → Program 0 (Great Mixture)
+# - Channel 1 → Program 1 (Swell Mixture)
+# - etc.
+#
+# Physical ranks just need to be ready to receive note on/off messages

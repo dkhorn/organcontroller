@@ -36,6 +36,7 @@ class MidiInput:
         """Open the MIDI input port and start receiving messages."""
         try:
             logger.info(f"Opening MIDI input port: {self.port_name}")
+            # Non-blocking port with timeout for clean shutdown
             self.port = mido.open_input(self.port_name)
             self.running = True
             logger.info(f"MIDI input port opened successfully")
@@ -44,17 +45,21 @@ class MidiInput:
             raise
     
     def process_messages(self):
-        """Process incoming MIDI messages (blocking call)."""
+        """Process incoming MIDI messages (blocking call with periodic checks)."""
         if not self.port or not self.running:
             logger.warning("MIDI input not started")
             return
         
         logger.info("Starting MIDI message processing loop")
         try:
-            for msg in self.port:
-                if not self.running:
-                    break
-                self.callback(msg)
+            # Use iter_pending() with sleep to allow interruption
+            import time
+            while self.running:
+                for msg in self.port.iter_pending():
+                    if not self.running:
+                        break
+                    self.callback(msg)
+                time.sleep(0.001)  # 1ms sleep to allow signal handling
         except KeyboardInterrupt:
             logger.info("MIDI input interrupted by user")
         except Exception as e:
