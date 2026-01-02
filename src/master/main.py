@@ -21,6 +21,8 @@ from inputs.midi_external import MidiInput
 from outputs.midi_ranks import MidiOutput
 from logic.stops import StopRouter
 from logic.input_mapper import InputMapper
+from master.web_api import OrganWebAPI
+from master.actions import Actions
 
 logger = get_logger('main')
 
@@ -28,24 +30,19 @@ logger = get_logger('main')
 class OrganController:
     """Main organ controller service."""
     
-    def __init__(self, config_path: str = "config/midi_ports.yaml", 
-                 ranks_config_path: str = "config/ranks.yaml",
-                 stops_config_path: str = "config/stops.yaml",
-                 input_map_config_path: str = "config/input_map.yaml",
+    def __init__(self, config_dir: str = "config/hybrid_organ", 
                  daemon_mode: bool = False):
         """Initialize the organ controller.
         
         Args:
-            config_path: Path to MIDI ports configuration file
-            ranks_config_path: Path to ranks configuration file
-            stops_config_path: Path to stops configuration file
-            input_map_config_path: Path to input mapping configuration file
+            config_dir: Directory containing configuration files (midi_ports.yaml, ranks.yaml, stops.yaml, input_map.yaml)
             daemon_mode: If True, run as daemon; if False, run interactive mode
         """
-        self.config_path = config_path
-        self.ranks_config_path = ranks_config_path
-        self.stops_config_path = stops_config_path
-        self.input_map_config_path = input_map_config_path
+        self.config_dir = config_dir
+        self.config_path = f"{config_dir}/midi_ports.yaml"
+        self.ranks_config_path = f"{config_dir}/ranks.yaml"
+        self.stops_config_path = f"{config_dir}/stops.yaml"
+        self.input_map_config_path = f"{config_dir}/input_map.yaml"
         self.daemon_mode = daemon_mode
         self.midi_input: MidiInput = None
         self.midi_outputs: dict = {}  # Multiple outputs
@@ -58,6 +55,8 @@ class OrganController:
         self.active_rank_notes: dict = {}  # Track rank notes: (output, channel, note) -> (rank_id, timestamp)
         self.running = False
         self._shutdown_requested = False
+        self.web_api: OrganWebAPI = None  # Web API server
+        self.actions: Actions = None  # Unified actions for CLI and API
         
         # Setup signal handlers
         signal.signal(signal.SIGINT, self._signal_handler)
@@ -90,8 +89,25 @@ class OrganController:
             return config
         except Exception as e:
             logger.error(f"Failed to load configuration: {e}")
-            raise
-    
+            raise    
+    def _build_port_to_output_map(self, config: dict) -> dict:
+        """Build a mapping from 'client:port' to output name.
+        
+        Args:
+            config: MIDI ports configuration
+            
+        Returns:
+            Dictionary mapping 'client:port' string to output name
+        """
+        port_map = {}
+        for output_name, port_address in config.get('output_ports', {}).items():
+            # Extract client:port from address like "FS_Virtual:FS_Virtual 128:0"
+            # Format is "device_name:port_name client:port"
+            parts = port_address.split()
+            if len(parts) >= 2:
+                client_port = parts[-1]  # Last part is "client:port"
+                port_map[client_port] = output_name
+        return port_map    
     def load_ranks_config(self) -> dict:
         """Load ranks configuration from YAML file.
         
@@ -114,7 +130,7 @@ class OrganController:
         """Load stops configuration from YAML file.
         
         Returns:
-            Stops configuration dictionary
+            Stops configuration dictionary with division metadata added
         """
         stops_file = Path(__file__).parent.parent.parent / self.stops_config_path
         logger.info(f"Loading stops configuration from: {stops_file}")
@@ -122,6 +138,12 @@ class OrganController:
         try:
             with open(stops_file, 'r') as f:
                 config = yaml.safe_load(f)
+            
+            # Add division metadata to each stop for easy lookup
+            for division, stops in config.items():
+                for stop_id, stop_data in stops.items():
+                    stop_data['division'] = division
+            
             # Count total stops across all divisions
             total_stops = sum(len(config.get(div, {})) for div in ['great', 'swell', 'choir', 'pedal'])
             logger.info(f"Stops configuration loaded: {total_stops} stops across 4 divisions")
@@ -241,16 +263,18 @@ class OrganController:
         self.initialize_outputs()
         
         # Initialize stop router
-        self.stop_router = StopRouter(self.stops_config, self.ranks_config, self.midi_outputs, self)
+        config = self.load_config()
+        port_to_output = self._build_port_to_output_map(config)
+        self.stop_router = StopRouter(self.stops_config, self.ranks_config, self.midi_outputs, self, port_to_output)
         logger.info("Stop router initialized")
         
-        # Build stop name lookup map (case-insensitive)
-        self.stop_lookup = {}  # lowercase stop_name -> (division, STOP_NAME)
+        # Build flat stop lookup map: stop_id -> stop_data (with division embedded)
+        self.stop_index = {}  # stop_id -> stop_data
         for division in ['great', 'swell', 'choir', 'pedal']:
             if division in self.stops_config:
-                for stop_name in self.stops_config[division].keys():
-                    self.stop_lookup[stop_name.lower()] = (division, stop_name)
-        logger.info(f"Stop lookup map built: {len(self.stop_lookup)} stops")
+                for stop_id, stop_data in self.stops_config[division].items():
+                    self.stop_index[stop_id] = stop_data
+        logger.info(f"Stop index built: {len(self.stop_index)} stops")
         
         # Initialize input mapper
         input_map_path = Path(__file__).parent.parent.parent / self.input_map_config_path
@@ -260,6 +284,13 @@ class OrganController:
         # Initialize MIDI input with callback
         self.midi_input = MidiInput(input_port, self.on_midi_message)
         self.midi_input.start()
+        
+        # Start web API
+        self.web_api = OrganWebAPI(self, host='0.0.0.0', port=5000)
+        self.web_api.start()
+        
+        # Initialize unified actions for CLI and API
+        self.actions = Actions(self)
         
         # Start processing
         self.running = True
@@ -354,6 +385,8 @@ class OrganController:
             self.cmd_key_off(args)
         elif cmd == "all_clear":
             self.cmd_all_clear()
+        elif cmd == "panic":
+            self.cmd_panic()
         elif cmd == "status":
             self.cmd_status()
         elif cmd == "state":
@@ -377,6 +410,7 @@ Available Commands:
   key_on MANUAL NOTE        - Simulate key press (MANUAL: G/S/C/P, NOTE: 0-127)
   key_off MANUAL NOTE       - Simulate key release
   all_clear                 - Turn off all stops
+  panic                     - Send MIDI panic (all notes off) to all outputs
   status                    - Show active stops and system status
   state [keys|notes]        - Show state: keys pressed, rank notes playing, or both
   list_stops [DIVISION]     - List all stops (optionally filter by division)
@@ -397,21 +431,11 @@ Examples:
             print("Example: stop_on great_principal_8 or stop_on GREAT_PRINCIPAL_8")
             return
         
-        stop_name = args[0].lower()
-        
-        if stop_name not in self.stop_lookup:
-            print(f"Unknown stop: {args[0]}")
-            print("Use 'list_stops' to see all available stops")
-            return
-        
-        division, actual_stop_name = self.stop_lookup[stop_name]
-        full_id = f"{division}:{actual_stop_name}"
-        
-        if self.stop_router.activate_stop(full_id):
-            stop_info = self.stops_config[division][actual_stop_name]
-            print(f"ON: {stop_info['name']} ({actual_stop_name})")
+        result = self.actions.activate_stop(args[0])
+        if result['success']:
+            print(f"ON: {result['stop_name']} ({result['stop_id']})")
         else:
-            print(f"Failed to activate stop: {full_id}")
+            print(f"Error: {result.get('error', 'Unknown error')}")
     
     def cmd_stop_off(self, args: list):
         """Turn off a stop."""
@@ -420,21 +444,11 @@ Examples:
             print("Example: stop_off great_principal_8 or stop_off GREAT_PRINCIPAL_8")
             return
         
-        stop_name = args[0].lower()
-        
-        if stop_name not in self.stop_lookup:
-            print(f"Unknown stop: {args[0]}")
-            print("Use 'list_stops' to see all available stops")
-            return
-        
-        division, actual_stop_name = self.stop_lookup[stop_name]
-        full_id = f"{division}:{actual_stop_name}"
-        
-        if self.stop_router.deactivate_stop(full_id):
-            stop_info = self.stops_config[division][actual_stop_name]
-            print(f"OFF: {stop_info['name']} ({actual_stop_name})")
+        result = self.actions.deactivate_stop(args[0])
+        if result['success']:
+            print(f"OFF: {result['stop_name']} ({result['stop_id']})")
         else:
-            print(f"Stop not active: {args[0]}")
+            print(f"Error: {result.get('error', 'Unknown error')}")
     
     def cmd_key_on(self, args: list):
         """Simulate a key press."""
@@ -451,26 +465,12 @@ Examples:
             print(f"Invalid note number: {args[1]}")
             return
         
-        if note < 0 or note > 127:
-            print(f"Note must be 0-127, got {note}")
-            return
-        
-        manual_names = {'G': 'great', 'S': 'swell', 'C': 'choir', 'P': 'pedal'}
-        manual_display = {'G': 'Great', 'S': 'Swell', 'C': 'Choir', 'P': 'Pedal'}
-        
-        if manual not in manual_names:
-            print(f"Invalid manual: {manual}. Use G, S, C, or P")
-            return
-        
-        division = manual_names[manual]
-        
-        # Track key press in state
-        import time
-        self.active_keys[(division, note)] = time.time()
-        
-        # Route through stop logic
-        self.stop_router.process_note_on(division, note, velocity=64)
-        print(f"Key ON: {manual_display[manual]} note {note}")
+        result = self.actions.simulate_key_on(manual, note)
+        if result['success']:
+            manual_display = {'G': 'Great', 'S': 'Swell', 'C': 'Choir', 'P': 'Pedal'}
+            print(f"Key ON: {manual_display[manual]} note {note}")
+        else:
+            print(f"Error: {result.get('error', 'Unknown error')}")
     
     def cmd_key_off(self, args: list):
         """Simulate a key release."""
@@ -485,34 +485,31 @@ Examples:
             print(f"Invalid note number: {args[1]}")
             return
         
-        manual_names = {'G': 'great', 'S': 'swell', 'C': 'choir', 'P': 'pedal'}
-        manual_display = {'G': 'Great', 'S': 'Swell', 'C': 'Choir', 'P': 'Pedal'}
-        
-        if manual not in manual_names:
-            print(f"Invalid manual: {manual}. Use G, S, C, or P")
-            return
-        
-        division = manual_names[manual]
-        
-        # Track key release in state
-        self.active_keys.pop((division, note), None)
-        
-        # Route through stop logic
-        self.stop_router.process_note_off(division, note)
-        print(f"Key OFF: {manual_display[manual]} note {note}")
+        result = self.actions.simulate_key_off(manual, note)
+        if result['success']:
+            manual_display = {'G': 'Great', 'S': 'Swell', 'C': 'Choir', 'P': 'Pedal'}
+            print(f"Key OFF: {manual_display[manual]} note {note}")
+        else:
+            print(f"Error: {result.get('error', 'Unknown error')}")
     
     def cmd_all_clear(self):
         """Turn off all stops."""
-        if self.stop_router:
-            self.stop_router.clear_all_stops()
-            print("All stops cleared")
+        result = self.actions.all_clear()
+        if result['success']:
+            print(f"All stops cleared ({result['count']} stops)")
         else:
-            print("Stop router not initialized")
+            print(f"Error: {result.get('error', 'Unknown error')}")
+    
+    def cmd_panic(self):
+        """Send MIDI panic to all outputs."""
+        result = self.actions.panic()
+        if result['success']:
+            print(f"MIDI panic sent to {result['outputs_count']} outputs")
+        else:
+            print(f"Error: {result.get('error', 'Unknown error')}")
     
     def cmd_state(self, args: list):
         """Show state information."""
-        import time
-        
         subcommand = args[0].lower() if args else 'all'
         
         if subcommand not in ('all', 'keys', 'notes'):
@@ -522,19 +519,30 @@ Examples:
             print("  state notes - Show only active rank notes")
             return
         
+        state_type = None if subcommand == 'all' else subcommand
+        result = self.actions.get_state(state_type)
+        
+        if not result['success']:
+            print(f"Error: {result.get('error', 'Unknown error')}")
+            return
+        
+        import time
         current_time = time.time()
         
-        if subcommand in ('all', 'keys'):
+        if 'keys' in result:
             print("\n" + "="*60)
             print("ACTIVE INPUT KEYS")
             print("="*60)
             
-            if not self.active_keys:
+            if not result['keys']:
                 print("  No keys pressed")
             else:
                 # Group by division
                 keys_by_division = {}
-                for (division, note), timestamp in self.active_keys.items():
+                for key in result['keys']:
+                    division = key['division']
+                    note = key['note']
+                    timestamp = key['timestamp']
                     if division not in keys_by_division:
                         keys_by_division[division] = []
                     duration = current_time - timestamp
@@ -546,47 +554,55 @@ Examples:
                     for note, duration in notes:
                         print(f"    Note {note:3d} - held for {duration:6.2f}s")
         
-        if subcommand in ('all', 'notes'):
+        if 'notes' in result:
             print("\n" + "="*60)
             print("ACTIVE RANK NOTES")
             print("="*60)
             
-            if not self.active_rank_notes:
+            if not result['notes']:
                 print("  No rank notes playing")
             else:
-                # Group by output
-                notes_by_output = {}
-                for (output, channel, note), (rank_id, timestamp) in self.active_rank_notes.items():
-                    if output not in notes_by_output:
-                        notes_by_output[output] = []
+                # Group by rank
+                notes_by_rank = {}
+                for note_data in result['notes']:
+                    rank = note_data['rank']
+                    note = note_data['note']
+                    timestamp = note_data['timestamp']
+                    if rank not in notes_by_rank:
+                        notes_by_rank[rank] = []
                     duration = current_time - timestamp
-                    notes_by_output[output].append((channel, note, rank_id, duration))
+                    notes_by_rank[rank].append((note, duration))
                 
-                for output in sorted(notes_by_output.keys()):
-                    notes = sorted(notes_by_output[output])
-                    print(f"\n  {output.upper()}:")
-                    for channel, note, rank_id, duration in notes:
-                        print(f"    Ch{channel:2d} Note{note:3d} ({rank_id:20s}) - playing for {duration:6.2f}s")
+                for rank in sorted(notes_by_rank.keys()):
+                    notes = sorted(notes_by_rank[rank])
+                    print(f"\n  {rank}:")
+                    for note, duration in notes:
+                        print(f"    Note {note:3d} - playing for {duration:6.2f}s")
         
-        print()
+        print("")
     
     def cmd_status(self):
         """Show system status."""
+        result = self.actions.get_status()
+        
         print("\n" + "="*60)
         print("SYSTEM STATUS")
         print("="*60)
         print(f"Running: {self.running}")
         print(f"Mode: {'Daemon' if self.daemon_mode else 'Interactive'}")
         
-        active_stops = self.stop_router.get_active_stops() if self.stop_router else set()
-        print(f"Active stops: {len(active_stops)}")
-        
-        if active_stops:
-            print("\nDrawn stops:")
-            for stop_id in sorted(active_stops):
-                division, stop_name = stop_id.split(':', 1)
-                stop_info = self.stops_config[division][stop_name]
-                print(f"  - {stop_info['name']} ({stop_id})")
+        if result['success']:
+            print(f"Active stops: {len(result['active_stops'])}")
+            
+            if result['active_stops']:
+                print("\nDrawn stops:")
+                for stop in sorted(result['active_stops'], key=lambda s: (s['division'], s['id'])):
+                    print(f"  - {stop['name']} ({stop['id']})")
+            
+            print(f"\nActive keys: {result['active_keys']}")
+            print(f"Active rank notes: {result['active_notes']}")
+        else:
+            print(f"Error getting status: {result.get('error', 'Unknown error')}")
         
         print(f"\nMIDI outputs: {len(self.midi_outputs)}")
         for name in self.midi_outputs.keys():
@@ -602,20 +618,30 @@ Examples:
             print(f"Available divisions: {', '.join(self.stops_config.keys())}")
             return
         
-        divisions = [division_filter] if division_filter else self.stops_config.keys()
+        result = self.actions.list_stops(division_filter)
+        
+        if not result['success']:
+            print(f"Error: {result.get('error', 'Unknown error')}")
+            return
         
         print("\n" + "="*60)
         print("AVAILABLE STOPS")
         print("="*60)
         
-        active_stops = self.stop_router.get_active_stops() if self.stop_router else set()
+        # Group by division
+        stops_by_division = {}
+        for stop in result['stops']:
+            div = stop['division']
+            if div not in stops_by_division:
+                stops_by_division[div] = []
+            stops_by_division[div].append(stop)
         
-        for division in sorted(divisions):
-            stops = self.stops_config.get(division, {})
+        for division in sorted(stops_by_division.keys()):
+            stops = stops_by_division[division]
             print(f"\n{division.upper()} ({len(stops)} stops):")
-            for stop_id, stop_info in stops.items():
-                active = "✓" if f"{division}:{stop_id}" in active_stops else " "
-                print(f"  [{active}] {stop_id:30} - {stop_info['name']}")
+            for stop in stops:
+                active = "✓" if stop['active'] else " "
+                print(f"  [{active}] {stop['id']:30} - {stop['name']}")
         print()
     
     def stop(self):
@@ -644,13 +670,17 @@ def main():
     parser = argparse.ArgumentParser(description='Organ Controller Service')
     parser.add_argument('--daemon', action='store_true', 
                         help='Run in daemon mode (no interactive console)')
+    parser.add_argument('--config', type=str, default='config/hybrid_organ',
+                        help='Configuration directory (default: config/hybrid_organ)')
     args = parser.parse_args()
     
     # Setup logging
     setup_logging(level=logging.DEBUG)
     
-    # Create and start controller
-    controller = OrganController(daemon_mode=args.daemon)
+    logger.info(f"Using configuration directory: {args.config}")
+    
+    # Create controller
+    controller = OrganController(config_dir=args.config, daemon_mode=args.daemon)
     
     try:
         controller.start()

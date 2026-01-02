@@ -108,6 +108,15 @@ physical_ranks:
     c4_key_note: 60  # Middle C (pedal equivalent) is MIDI note 60
     notes: "Pedal only, no pipes (reed resonators)"
 
+  PEDAL_CONTRACEPTIVE:
+    name: "Pedal Contraceptive 32'"
+    midi_address: "U6MIDI Pro:U6MIDI Pro MIDI 2 20:1:0"
+    first_note: 24  # C1 at 32' pitch (pedal low C sounds at C-1)
+    last_note: 60  # C4 at 32' pitch (sounds at C2)   
+    c4_pitch_note: 84  # MIDI note 84 sounds as C4
+    c4_key_note: 60  # Middle C (pedal equivalent) is MIDI note 60
+    notes: "Pedal only, very low frequency reinforcement"
+
 # =============================================================================
 # VIRTUAL/DIGITAL RANKS - FluidSynth
 # =============================================================================
@@ -139,7 +148,7 @@ virtual_ranks:
   D_GREAT_CLARION:
     name: "Great Clarion 4'"
     midi_address: "FS_Virtual:FS_Virtual 128:0:2"
-    program: 4  # Bank 0, Program 4: "I Octav 4" (closest to clarion)
+    program: 22  # Bank 0, Program 4: "I Octav 4" (closest to clarion)
     first_note: 36  # C2 keyboard note (sounds at C3 due to 4' pitch)
     last_note: 96   # C7 keyboard note (sounds at C8 due to 4' pitch)
     c4_pitch_note: 48  # MIDI note 48 (C3 key) sounds as C4
@@ -155,6 +164,97 @@ virtual_ranks:
     c4_pitch_note: 60  # MIDI note 60 sounds as C4
     c4_key_note: 60    # Middle C key is MIDI note 60
     description: "Digital principal 8' on FluidSynth instance 2"
+  
+  # DIGITAL EQUIVALENTS FOR PHYSICAL RANKS (FluidSynth 2)
+  D_M1:
+    name: "Digital Open Diapason 8'"
+    midi_address: "FS_Virtual2:FS_Virtual2 129:0:0"
+    program: 1  # Bank 0, Program 1: "Montre 8"
+    first_note: 48  # C3
+    last_note: 108  # C8
+    c4_pitch_note: 60  # MIDI note 60 sounds as C4
+    c4_key_note: 60    # Middle C key is MIDI note 60
+    description: "Digital equivalent of M1 (Open Diapason)"
+  
+  D_M2:
+    name: "Digital Dulciana 8'"
+    midi_address: "FS_Virtual2:FS_Virtual2 129:0:1"
+    program: 11  # Bank 0, Program 11: "II Dulciane 8" 
+    first_note: 48  # C3
+    last_note: 108  # C8
+    c4_pitch_note: 60  # MIDI note 60 sounds as C4
+    c4_key_note: 60    # Middle C key is MIDI note 60
+    description: "Digital equivalent of M2 (Dulciana)"
+  
+  D_M3:
+    name: "Digital Voix Celeste 8'"
+    midi_address: "FS_Virtual2:FS_Virtual2 129:0:2"
+    program: 12  # Bank 0, Program 12: "II Voix Celeste 8"
+    first_note: 48  # C3
+    last_note: 96   # C7
+    c4_pitch_note: 60  # MIDI note 60 sounds as C4
+    c4_key_note: 60    # Middle C key is MIDI note 60
+    description: "Digital equivalent of M3 (Voix Celeste)"
+  
+  D_M4:
+    name: "Digital Salicional 8'"
+    midi_address: "FS_Virtual2:FS_Virtual2 129:0:3"
+    program: 5  # Bank 0, Program 5: "I Salicional 8"
+    first_note: 48  # C3
+    last_note: 108  # C8
+    c4_pitch_note: 60  # MIDI note 60 sounds as C4
+    c4_key_note: 60    # Middle C key is MIDI note 60
+    description: "Digital equivalent of M4 (Salicional)"
+  
+  D_M5:
+    name: "Digital High String 2'"
+    midi_address: "FS_Virtual2:FS_Virtual2 129:0:4"
+    program: 14  # Bank 0, Program 14: "II Doublette 2"
+    first_note: 48  # C3
+    last_note: 96   # C7
+    c4_pitch_note: 36  # MIDI note 36 sounds as C4 (2' rank)
+    c4_key_note: 60    # Middle C key is MIDI note 60
+    description: "Digital equivalent of M5 (High String/Piccolo 2')"
+  
+  D_W1:
+    name: "Digital Open Flute 8'"
+    midi_address: "FS_Virtual2:FS_Virtual2 129:0:5"
+    program: 2  # Bank 0, Program 2: "I Bourdon 8"
+    first_note: 24  # C1
+    last_note: 108  # C8
+    c4_pitch_note: 60  # MIDI note 60 sounds as C4
+    c4_key_note: 36    # Middle C key shifted for extended rank
+    description: "Digital equivalent of W1 (Open Flute)"
+  
+  D_W2:
+    name: "Digital Bourdon 16'"
+    midi_address: "FS_Virtual2:FS_Virtual2 129:0:6"
+    program: 21  # Bank 0, Program 21: "P Soubasse 16"
+    first_note: 24  # C1
+    last_note: 120  # C9
+    c4_pitch_note: 72  # MIDI note 72 sounds as C4 (16' rank)
+    c4_key_note: 48    # Middle C key shifted for extended rank
+    description: "Digital equivalent of W2 (Bourdon 16')"
+  
+  D_W3:
+    name: "Digital Tibia Bass 16'"
+    midi_address: "FS_Virtual2:FS_Virtual2 129:0:7"
+    program: 21  # Bank 0, Program 21: "P Soubasse 16"
+    first_note: 24  # C1
+    last_note: 60   # C4
+    c4_pitch_note: 72  # MIDI note 72 sounds as C4 (16' rank)
+    c4_key_note: 60    # Pedal
+    description: "Digital equivalent of W3 (Tibia Bass)"
+  
+  D_R1:
+    name: "Digital Subbass 16'"
+    midi_address: "FS_Virtual2:FS_Virtual2 129:0:8"
+    program: 21  # Bank 0, Program 21: "P Soubasse 16"
+    first_note: 24  # C1
+    last_note: 35   # B1
+    c4_pitch_note: 72  # MIDI note 72 sounds as C4 (16' rank)
+    c4_key_note: 60    # Pedal
+    description: "Digital equivalent of R1 (Subbass)"
   
   # SWELL DIVISION (Digital stops)
   D_SWELL_FIFTEENTH:

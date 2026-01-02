@@ -13,7 +13,7 @@ logger = logging.getLogger('organcontroller.stops')
 class StopRouter:
     """Routes notes through drawn stops to the appropriate ranks."""
     
-    def __init__(self, stops_config: dict, ranks_config: dict, midi_outputs: dict, controller=None):
+    def __init__(self, stops_config: dict, ranks_config: dict, midi_outputs: dict, controller=None, port_to_output_map: dict = None):
         """Initialize the stop router.
         
         Args:
@@ -21,11 +21,13 @@ class StopRouter:
             ranks_config: Ranks configuration (from ranks.yaml)
             midi_outputs: Dictionary of MIDI output objects by name
             controller: OrganController instance for state tracking (optional)
+            port_to_output_map: Mapping from 'client:port' to output name (optional)
         """
         self.stops_config = stops_config
         self.ranks_config = ranks_config
         self.midi_outputs = midi_outputs
         self.controller = controller
+        self.port_to_output_map = port_to_output_map or {}
         self.active_stops: Set[str] = set()
         
         # Build a lookup for ranks by ID
@@ -45,27 +47,31 @@ class StopRouter:
         """Activate a stop.
         
         Args:
-            stop_id: Stop ID in format "division:STOP_NAME"
+            stop_id: Stop ID (e.g., "GREAT_PRINCIPAL_8")
         
         Returns:
             True if stop was activated, False if invalid
         """
-        if ':' not in stop_id:
+        # Look up which division this stop belongs to
+        division = None
+        stop_name = stop_id
+        
+        for div in ['great', 'swell', 'choir', 'pedal']:
+            if div in self.stops_config and stop_id in self.stops_config[div]:
+                division = div
+                break
+        
+        if not division:
+            logger.warning(f"Stop not found: {stop_id}")
             return False
         
-        division, stop_name = stop_id.split(':', 1)
-        division = division.lower()
-        
-        if division not in self.stops_config:
-            return False
-        
-        if stop_name not in self.stops_config[division]:
-            return False
+        # Create internal ID with division prefix for tracking
+        internal_id = f"{division}:{stop_name}"
         
         # Check if stop was already active
-        was_active = stop_id in self.active_stops
+        was_active = internal_id in self.active_stops
         
-        self.active_stops.add(stop_id)
+        self.active_stops.add(internal_id)
         logger.info(f"Stop activated: {stop_id}")
         
         # If stop was just activated and we have controller state, sound any held keys
@@ -80,7 +86,7 @@ class StopRouter:
                     # Get velocity from original key press if available, otherwise use default
                     velocity = 64
                     # Route this note through the newly activated stop
-                    self._route_note_through_stop(stop_id, note, velocity, True)
+                    self._route_note_through_stop(internal_id, note, velocity, True)
         
         return True
     
@@ -88,15 +94,29 @@ class StopRouter:
         """Deactivate a stop.
         
         Args:
-            stop_id: Stop ID in format "division:STOP_NAME"
+            stop_id: Stop ID (e.g., "GREAT_PRINCIPAL_8")
         
         Returns:
             True if stop was deactivated, False if not active
         """
-        if stop_id in self.active_stops:
+        # Look up which division this stop belongs to
+        division = None
+        
+        for div in ['great', 'swell', 'choir', 'pedal']:
+            if div in self.stops_config and stop_id in self.stops_config[div]:
+                division = div
+                break
+        
+        if not division:
+            logger.warning(f"Stop not found: {stop_id}")
+            return False
+        
+        # Create internal ID with division prefix
+        internal_id = f"{division}:{stop_id}"
+        
+        if internal_id in self.active_stops:
             # Before removing, silence any held keys on this stop
             if self.controller and hasattr(self.controller, 'active_keys'):
-                division = stop_id.split(':', 1)[0]
                 held_keys = [(div, note) for (div, note) in self.controller.active_keys.keys() 
                             if div == division]
                 
@@ -104,9 +124,9 @@ class StopRouter:
                     logger.debug(f"Silencing {len(held_keys)} held keys on deactivated stop {stop_id}")
                     for _, note in held_keys:
                         # Send note_off for this stop
-                        self._route_note_through_stop(stop_id, note, 0, False)
+                        self._route_note_through_stop(internal_id, note, 0, False)
             
-            self.active_stops.remove(stop_id)
+            self.active_stops.remove(internal_id)
             logger.info(f"Stop deactivated: {stop_id}")
             return True
         return False
@@ -349,35 +369,33 @@ class StopRouter:
         #   "U6MIDI Pro:U6MIDI Pro MIDI 3 20:2:0"
         #   "FS_Virtual:FS_Virtual 128:0:5"
         
-        if ':' not in midi_address:
-            logger.warning(f"Invalid MIDI address for rank {rank_id}: {midi_address}")
+        if not midi_address:
+            logger.warning(f"No MIDI address for rank {rank_id}")
             return
         
-        parts = midi_address.split(':')
-        if len(parts) < 4:
+        parts = midi_address.split()
+        if len(parts) < 2:
             logger.warning(f"Invalid MIDI address format for rank {rank_id}: {midi_address}")
             return
         
-        # Extract channel from the last part
+        # Last part has format "client:port:channel"
+        addr_parts = parts[-1].split(':')
+        if len(addr_parts) < 3:
+            logger.warning(f"Invalid MIDI address format for rank {rank_id}: {midi_address}")
+            return
+        
+        # Extract channel and client:port
         try:
-            channel = int(parts[-1])
+            channel = int(addr_parts[-1])
+            client_port = ':'.join(addr_parts[:-1])  # "client:port"
         except ValueError:
             logger.warning(f"Invalid channel in MIDI address for rank {rank_id}: {midi_address}")
             return
         
-        # Determine which output to use based on the address
-        output_name = None
-        if 'U6MIDI Pro MIDI 3' in midi_address or '20:2' in midi_address:
-            output_name = 'physical_ranks'
-        elif 'FS_Virtual2' in midi_address or '129:0' in midi_address:
-            output_name = 'fluidsynth2'
-        elif 'FS_Virtual' in midi_address or '128:0' in midi_address:
-            output_name = 'fluidsynth'
-        elif 'U6MIDI Pro MIDI 2' in midi_address or '20:1' in midi_address:
-            output_name = 'hardware'
-        
+        # Look up output name from config-driven map
+        output_name = self.port_to_output_map.get(client_port)
         if not output_name or output_name not in self.midi_outputs:
-            logger.warning(f"No output found for rank {rank_id} (address: {midi_address})")
+            logger.warning(f"No output found for rank {rank_id} (client:port: {client_port})")
             return
         
         output = self.midi_outputs[output_name]

@@ -6,10 +6,18 @@ great:
       transpose: 0
       velocity_min: 127
       velocity_max: 127
+    - rank: D_M1
+      transpose: 0
+      velocity_min: 127
+      velocity_max: 127
   GREAT_OCTAVE_4:
     name: Octave 4'
     ranks:
     - rank: M1
+      transpose: 12
+      velocity_min: 127
+      velocity_max: 127
+    - rank: D_M1
       transpose: 12
       velocity_min: 127
       velocity_max: 127
@@ -20,10 +28,18 @@ great:
       transpose: 24
       velocity_min: 127
       velocity_max: 127
+    - rank: D_M1
+      transpose: 24
+      velocity_min: 127
+      velocity_max: 127
   GREAT_PRINCIPAL_16:
     name: Principal 16'
     ranks:
     - rank: M1
+      transpose: -12
+      velocity_min: 127
+      velocity_max: 127
+    - rank: D_M1
       transpose: -12
       velocity_min: 127
       velocity_max: 127
@@ -34,10 +50,18 @@ great:
       transpose: 0
       velocity_min: 127
       velocity_max: 127
+    - rank: D_W1
+      transpose: 0
+      velocity_min: 127
+      velocity_max: 127
   GREAT_FLUTE_4:
     name: Flute 4'
     ranks:
     - rank: W1
+      transpose: 12
+      velocity_min: 127
+      velocity_max: 127
+    - rank: D_W1
       transpose: 12
       velocity_min: 127
       velocity_max: 127
@@ -48,10 +72,18 @@ great:
       transpose: -12
       velocity_min: 127
       velocity_max: 127
+    - rank: D_W2
+      transpose: -12
+      velocity_min: 127
+      velocity_max: 127
   GREAT_BOURDON_8:
     name: Bourdon 8'
     ranks:
-    - rank: W2
+    - rank: W1
+      transpose: 0
+      velocity_min: 127
+      velocity_max: 127
+    - rank: D_W1
       transpose: 0
       velocity_min: 127
       velocity_max: 127
@@ -72,8 +104,8 @@ great:
   GREAT_CLARION_4:
     name: Clarion 4'
     ranks:
-    - rank: D_GREAT_CLARION
-      transpose: 0
+    - rank: D_GREAT_TRUMPET
+      transpose: 12
       velocity_min: 127
       velocity_max: 127
   GREAT_MONTRE_8:
@@ -99,10 +131,18 @@ swell:
       transpose: 0
       velocity_min: 127
       velocity_max: 127
+    - rank: D_M4
+      transpose: 0
+      velocity_min: 127
+      velocity_max: 127
   SWELL_VOIX_CELESTE_8:
     name: Voix Celeste 8'
     ranks:
     - rank: M3
+      transpose: 0
+      velocity_min: 127
+      velocity_max: 127
+    - rank: D_M3
       transpose: 0
       velocity_min: 127
       velocity_max: 127
@@ -113,10 +153,18 @@ swell:
       transpose: 12
       velocity_min: 127
       velocity_max: 127
+    - rank: D_M4
+      transpose: 12
+      velocity_min: 127
+      velocity_max: 127
   SWELL_DULCIANA_8:
     name: Dulciana 8'
     ranks:
     - rank: M2
+      transpose: 0
+      velocity_min: 127
+      velocity_max: 127
+    - rank: D_M2
       transpose: 0
       velocity_min: 127
       velocity_max: 127
@@ -127,6 +175,10 @@ swell:
       transpose: 24
       velocity_min: 127
       velocity_max: 127
+    - rank: D_M5
+      transpose: 24
+      velocity_min: 127
+      velocity_max: 127
   SWELL_GEDACKT_8:
     name: Gedackt 8'
     ranks:
@@ -134,10 +186,18 @@ swell:
       transpose: 0
       velocity_min: 127
       velocity_max: 127
+    - rank: D_W2
+      transpose: 0
+      velocity_min: 127
+      velocity_max: 127
   SWELL_FLUTE_4:
     name: Flute 4'
     ranks:
     - rank: W2
+      transpose: 12
+      velocity_min: 127
+      velocity_max: 127
+    - rank: D_W2
       transpose: 12
       velocity_min: 127
       velocity_max: 127
@@ -177,6 +237,10 @@ choir:
       transpose: 0
       velocity_min: 127
       velocity_max: 127
+    - rank: D_W2
+      transpose: 0
+      velocity_min: 127
+      velocity_max: 127
     notes: Borrowed from W2 (enclosed, but borrowed to unenclosed Choir)
   CHOIR_FLUTE_4:
     name: Flute 4'
@@ -185,11 +249,19 @@ choir:
       transpose: 12
       velocity_min: 127
       velocity_max: 127
+    - rank: D_W2
+      transpose: 12
+      velocity_min: 127
+      velocity_max: 127
     notes: Borrowed from W2 (enclosed, but borrowed to unenclosed Choir)
   CHOIR_PICCOLO_2:
     name: Piccolo 2'
     ranks:
     - rank: M5
+      transpose: 24
+      velocity_min: 127
+      velocity_max: 127
+    - rank: D_M5
       transpose: 24
       velocity_min: 127
       velocity_max: 127
@@ -244,10 +316,18 @@ pedal:
       transpose: -12
       velocity_min: 127
       velocity_max: 127
+    - rank: D_W2
+      transpose: -12
+      velocity_min: 127
+      velocity_max: 127
   PEDAL_BOURDON_8:
     name: Bourdon 8'
     ranks:
     - rank: W2
+      transpose: 0
+      velocity_min: 127
+      velocity_max: 127
+    - rank: D_W2
       transpose: 0
       velocity_min: 127
       velocity_max: 127
@@ -258,10 +338,18 @@ pedal:
       transpose: 12
       velocity_min: 127
       velocity_max: 127
+    - rank: D_W2
+      transpose: 12
+      velocity_min: 127
+      velocity_max: 127
   PEDAL_TIBIA_BASS_16:
     name: Tibia Bass 16'
     ranks:
     - rank: W3
+      transpose: -12
+      velocity_min: 127
+      velocity_max: 127
+    - rank: D_W3
       transpose: -12
       velocity_min: 127
       velocity_max: 127
@@ -272,6 +360,10 @@ pedal:
       transpose: -12
       velocity_min: 127
       velocity_max: 127
+    - rank: D_R1
+      transpose: -12
+      velocity_min: 127
+      velocity_max: 127
   PEDAL_OPEN_FLUTE_8:
     name: Open Flute 8'
     ranks:
@@ -279,10 +371,18 @@ pedal:
       transpose: 0
       velocity_min: 127
       velocity_max: 127
+    - rank: D_W1
+      transpose: 0
+      velocity_min: 127
+      velocity_max: 127
   PEDAL_PRINCIPAL_8:
     name: Principal 8'
     ranks:
     - rank: M1
+      transpose: 0
+      velocity_min: 127
+      velocity_max: 127
+    - rank: D_M1
       transpose: 0
       velocity_min: 127
       velocity_max: 127
@@ -305,5 +405,12 @@ pedal:
     ranks:
     - rank: D_PEDAL_TRUMPET
       transpose: 0
+      velocity_min: 127
+      velocity_max: 127
+  PEDAL_CONTRACEPTIVE:
+    name: Contraceptive 32'
+    ranks:
+    - rank: PEDAL_CONTRACEPTIVE
+      transpose: -24
       velocity_min: 127
       velocity_max: 127

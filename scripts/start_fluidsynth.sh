@@ -14,6 +14,7 @@ fluidsynth \
   -a pulseaudio \
   -m alsa_seq \
   -r 48000 \
+  -g 1.0 \
   -o audio.period-size=128 \
   -o audio.periods=3 \
   -o midi.portname="FS_Virtual" \
